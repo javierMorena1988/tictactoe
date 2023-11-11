@@ -84,7 +84,7 @@ function App() {
       setWinner(newWinner)
       // Como la actualizacion de los estados es asincrono, sale el alert antes que el X o O 
       // alert('el ganador es ' + newWinner)
-    }
+    } // chekear el empate
   }
 
   console.log(board)
