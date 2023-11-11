@@ -41,6 +41,8 @@ const WINNER_COMBOS = [
 ]
 
 function App() {
+  // console.log(winner)
+  
   //const board = Array(9).fill(null) // Cada vez que cambie, va a volver a renderizar el componente
   const [board, setBoard] = useState(Array(9).fill(null))
   const [turn, setTurn] = useState(TURNS.X)
@@ -65,8 +67,13 @@ function App() {
     return null
   }
 
-  const updateBoard = (index) => {
+  const resetGame = () => {
+    setBoard(Array(9).fill(null))
+    setWinner(null)
+    setTurn(TURNS.X)
+  }
 
+  const updateBoard = (index) => {
     // no actualizamos esta posición si ya tiene algo
     if (board[index] || winner) return
     // actualizar el tablero
@@ -75,19 +82,19 @@ function App() {
     // [...board] -> Copia Superficial. StructureClone(board) -> Copia profunda del array
     newBoard[index] = turn // asi, el usuario que tenia turno e hizo click en esa posicion, tenddrá X o O
     setBoard(newBoard)
-
+    // cambiar el turno
     const newTurn = turn === TURNS.X ? TURNS.O : TURNS.X
     setTurn(newTurn) // estamos cambiando el turno
     // revisar si hay ganador
     const newWinner = checkWinner(newBoard)
     if(newWinner) {
       setWinner(newWinner)
+      console.log(newWinner)
       // Como la actualizacion de los estados es asincrono, sale el alert antes que el X o O 
       // alert('el ganador es ' + newWinner)
     } // chekear el empate
   }
 
-  console.log(board)
   return (
   <main className="board">
   <h1>Tic tac toe</h1>
@@ -111,8 +118,30 @@ function App() {
       <Square isSelected={turn === TURNS.X}>{TURNS.X}</Square>
       <Square isSelected={turn === TURNS.O}>{TURNS.O}</Square>
     </section>
+
+    {
+      winner !== null && (
+        <section className="winner">
+          <div className="text">
+            <h2>
+              {winner === false ? 'Empate' : 'Ganó:'}
+            </h2>
+            <header className="win">
+              {winner & <Square>{winner}</Square>}
+            </header>
+
+            <footer>
+              <button onClick={resetGame}>Empezar de nuevo</button>
+
+            </footer>
+          </div>
+        </section>
+      )
+    }
   </main>
   )
 }
 
 export default App
+
+// voy por: https://youtu.be/qkzcjwnueLA?si=D6xehuStvl6OsnI8&t=2633
