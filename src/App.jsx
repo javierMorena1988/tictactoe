@@ -1,44 +1,14 @@
 import {useState} from "react"
 
-// Lo primero que vamos a crear son los turnos
-const TURNS = {
-  X: 'x',
-  O: 'o'
-}
+import { TURNS } from "./const/const"
+import { checkWinnerFrom } from "./logic/board"
 
-// Lo segundo, vamos a crear el tablero
+import { WinnerModal } from "./components/WinnerModal"
+import { BoardSection } from "./components/BoardSection"
+import { SelectedSection } from "./components/SelectedSection"
+import { checkEndGame } from "./logic/board"
 
-// const board = Array(9).fill(null) // Lo metemos dentro de la funcion App y lo usamos como un estado
 
-// Vamos a crear el cuadrado del tablero, el componente Square:
-// children: lo que tiene que tener dentro del tablero X o O
-// updateBoard: una forma de actualizar el tablero
-// index: 
-
-const Square = ({ children, isSelected,  updateBoard, index}) => {
-  const className= `square ${isSelected ? 'is-selected' : ''}`
-  const handleClick = () => {
-    updateBoard(index)
-  }
-
-  return (
-    <div onClick={handleClick} className={className}>
-      {children}
-    </div>
-  )
-}
-
-// Todas las combinaciones ganadoras (TODO: estudiar como hacerlo más óptimo)
-const WINNER_COMBOS = [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [0, 4, 8],
-  [2, 4, 6]
-]
 
 function App() {
   // console.log(winner)
@@ -49,29 +19,6 @@ function App() {
   // ¿Cómo sabemos si tenemos un ganador? Con un nuevo estado
   const [winner, setWinner] = useState(null) // null: no hay ganador. false: empate
   // en winner podríamos usar un enum igual que en TURNS
-
-  const checkWinner = (boardToCheck) => {
-    // revisamos todas las combinaciones ganadoras
-    // para ver si X u O ganó
-    for (const combo of WINNER_COMBOS) {
-      const [a,b,c] = combo
-      if (
-        boardToCheck[a] &&
-        boardToCheck[a] === boardToCheck[b] &&
-        boardToCheck[a] === boardToCheck[c] 
-      ) {
-        return boardToCheck[a]
-      }
-    }
-    // si no hay ganador
-    return null
-  }
-
-  const resetGame = () => {
-    setBoard(Array(9).fill(null))
-    setWinner(null)
-    setTurn(TURNS.X)
-  }
 
   const updateBoard = (index) => {
     // no actualizamos esta posición si ya tiene algo
@@ -86,62 +33,49 @@ function App() {
     const newTurn = turn === TURNS.X ? TURNS.O : TURNS.X
     setTurn(newTurn) // estamos cambiando el turno
     // revisar si hay ganador
-    const newWinner = checkWinner(newBoard)
+    const newWinner = checkWinnerFrom(newBoard) 
+    // le pasamos el nuevo valor (newBoard y no board) porque si no, 
+    // nos dejaría hacer una jugada más
     if(newWinner) {
       setWinner(newWinner)
-      console.log(newWinner)
+      // console.log(newWinner)
       // Como la actualizacion de los estados es asincrono, sale el alert antes que el X o O 
       // alert('el ganador es ' + newWinner)
     } // chekear el empate
+    else if(checkEndGame(newBoard)){
+      // Vamos a ver qué hace si es empate
+      console.log(winner)
+      setWinner(false)
+      // alert('el ganador es ' + winner) es null
+    }
+  }
+
+  const resetGame = () => {
+    setBoard(Array(9).fill(null))
+    setWinner(null)
+    setTurn(TURNS.X)
   }
 
   return (
   <main className="board">
   <h1>Tic tac toe</h1>
-    <section className="game">
-      {
-        board.map((_, index) => {
-          return (
-            <Square 
-              key={index} // mejor siempre el identificador unico
-              index={index}
-              updateBoard={updateBoard} // le pasamos la funcion, no la ejecucion (), para que se ejecute
-              // cuando queramos, no cada vez que se renderiza
-              >
-                {board[index]}
-              </Square>
-          )
-        })
-      }
-    </section>
-    <section className="turn">
-      <Square isSelected={turn === TURNS.X}>{TURNS.X}</Square>
-      <Square isSelected={turn === TURNS.O}>{TURNS.O}</Square>
-    </section>
+    <section className="square" onClick={(resetGame)}>Reset del juego</section>
 
-    {
-      winner !== null && (
-        <section className="winner">
-          <div className="text">
-            <h2>
-              {winner === false ? 'Empate' : 'Ganó:'}
-            </h2>
-            <header className="win">
-              {winner & <Square>{winner}</Square>}
-            </header>
+  {/* Sección del tablero */}
+    <BoardSection
+      board={board}
+      updateBoard={updateBoard}
+    />
 
-            <footer>
-              <button onClick={resetGame}>Empezar de nuevo</button>
+{/* Sección del turno */}
+    <SelectedSection  turn={turn}/>
 
-            </footer>
-          </div>
-        </section>
-      )
-    }
+ {/* Sección de la modal */}
+    <WinnerModal resetGame={resetGame} winner={winner}/>
   </main>
   )
 }
 
 export default App
 
-// voy por: https://youtu.be/qkzcjwnueLA?si=D6xehuStvl6OsnI8&t=2633
+// voy por: https://youtu.be/qkzcjwnueLA?si=IBcj2F8nt9yfhPBF&t=5380
